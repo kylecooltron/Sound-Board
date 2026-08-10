@@ -64,7 +64,7 @@ function play() {
   background: linear-gradient(
     to bottom,
     rgba(0, 0, 0, 0.05) 0%,
-    rgba(0, 0, 0, 0.65) 55%,
+    rgba(0, 0, 0, 0.35) 55%,
     rgba(0, 0, 0, 0.85) 100%
   );
 }
