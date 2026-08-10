@@ -19,7 +19,7 @@ const props = defineProps({
 })
 
 const bgStyle = computed(() => ({
-  backgroundImage: props.entry.image ? `url(/${props.entry.image})` : 'none',
+  backgroundImage: props.entry.image ? `url(${import.meta.env.BASE_URL}${props.entry.image})` : 'none',
 }))
 
 let audio = null
@@ -30,7 +30,7 @@ function play() {
     audio.pause()
     audio.currentTime = 0
   }
-  audio = new Audio(`/${props.entry.sound}`)
+  audio = new Audio(`${import.meta.env.BASE_URL}${props.entry.sound}`)
   isPlaying.value = true
   audio.play()
   audio.addEventListener('ended', () => { isPlaying.value = false })
