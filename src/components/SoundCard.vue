@@ -1,11 +1,15 @@
 <template>
-  <div class="sound-card" :style="bgStyle" @click.self="play">
-    <div class="card-overlay" @click="play" />
+  <div class="sound-card" :style="bgStyle" @click="play">
+    <div class="card-overlay" />
     <div class="card-body">
-      <h2 class="card-title" @click="play">{{ entry.title }}</h2>
+      <h2 class="card-title">{{ entry.title }}</h2>
       <div class="card-tags">
         <SoundTag v-for="tag in entry.tags" :key="tag" :label="tag" />
       </div>
+    </div>
+    <div v-if="loadState !== 'ready'" class="card-status">
+      <div v-if="loadState === 'loading'" class="spinner" />
+      <div v-else class="play-icon">&#9654;</div>
     </div>
   </div>
 </template>
@@ -16,24 +20,33 @@ import SoundTag from './SoundTag.vue'
 
 const props = defineProps({
   entry: { type: Object, required: true },
+  onPlay: { type: Function, required: true },
 })
 
 const bgStyle = computed(() => ({
   backgroundImage: props.entry.image ? `url(${import.meta.env.BASE_URL}${props.entry.image})` : 'none',
 }))
 
+// 'idle' | 'loading' | 'ready'
+const loadState = ref('idle')
 let audio = null
-const isPlaying = ref(false)
 
-function play() {
-  if (audio) {
-    audio.pause()
-    audio.currentTime = 0
+async function play() {
+  if (loadState.value === 'loading') return
+
+  if (loadState.value === 'idle') {
+    loadState.value = 'loading'
+    audio = new Audio(`${import.meta.env.BASE_URL}${props.entry.sound}`)
+    audio.preload = 'auto'
+    await new Promise((resolve) => {
+      if (audio.readyState >= 4) { resolve(); return }
+      audio.addEventListener('canplaythrough', resolve, { once: true })
+      audio.addEventListener('error', resolve, { once: true })
+    })
+    loadState.value = 'ready'
   }
-  audio = new Audio(`${import.meta.env.BASE_URL}${props.entry.sound}`)
-  isPlaying.value = true
-  audio.play()
-  audio.addEventListener('ended', () => { isPlaying.value = false })
+
+  props.onPlay(audio)
 }
 </script>
 
@@ -96,5 +109,36 @@ function play() {
   align-items: flex-end;
   flex-shrink: 0;
   max-width: 45%;
+}
+
+.card-status {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-icon {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.6);
+  line-height: 1;
+}
+
+.spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 220, 50, 0.9);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

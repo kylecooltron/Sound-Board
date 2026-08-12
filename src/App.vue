@@ -9,6 +9,7 @@
         v-for="entry in filtered"
         :key="entry.id"
         :entry="entry"
+        :onPlay="playSound"
       />
       <p v-if="filtered.length === 0" class="no-results">No results for "{{ query }}"</p>
     </main>
@@ -22,6 +23,18 @@ import SoundCard from './components/SoundCard.vue'
 import { soundboardData } from './data/soundboard.js'
 
 const query = ref('')
+
+let activeAudio = null
+
+function playSound(audio) {
+  if (activeAudio && activeAudio !== audio) {
+    activeAudio.pause()
+    activeAudio.currentTime = 0
+  }
+  audio.currentTime = 0
+  audio.play()
+  activeAudio = audio
+}
 
 const filtered = computed(() => {
   const q = query.value.trim().toLowerCase()
